@@ -1,7 +1,5 @@
 import {useState} from "react";
 import { useNavigate } from "react-router-dom";
-import EmployeesData from "./EmployeesData";
-import {v4 as uuid} from 'uuid';
 
 function CreateEmployee(){
     const navigate = useNavigate();
@@ -11,10 +9,21 @@ function CreateEmployee(){
 
     function submitHandler(event){
         event.preventDefault();
-        const ids = uuid();
-        let id = ids.slice(0,8);
-        EmployeesData.push({id:id, name: name, age: age});
-        navigate('/');
+        const employeeData = {
+            name: name,
+            age: age
+        };
+        fetch('https://react-crud-dfb7e-default-rtdb.firebaseio.com/employees.json',
+            {
+                method: 'POST',
+                body: JSON.stringify(employeeData),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        ).then(()=>{
+            navigate('/');
+        });
     }
 
     return (

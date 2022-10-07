@@ -1,23 +1,63 @@
-import EmployeesData from "./EmployeesData";
-import { Link, useNavigate } from "react-router-dom";
+import {useEffect, useState} from 'react';
+import {Link} from "react-router-dom";
 
 const AllEmployees = () => {
-    let navigate = useNavigate();
-    function editHandler(employee){
-        localStorage.setItem('id',employee.id);
-        localStorage.setItem('name',employee.name);
-        localStorage.setItem('age',employee.age);
+
+    const [render, rerender] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
+    const [EmployeesData, setEmployeesData] = useState([]);
+
+    useEffect(() => {
+        setIsLoading(true);
+
+        fetch('https://react-crud-dfb7e-default-rtdb.firebaseio.com/employees.json')
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                let employees = [];
+                for (const emp in data) {
+                    const employee = {
+                        id: emp,
+                        ...data[emp]
+                    };
+                    employees.push(employee);
+                }
+                rerender(false);
+                setIsLoading(false);
+                setEmployeesData(employees);
+            })
+
+    }, [render]);
+
+
+    function editHandler(employee) {
+        localStorage.setItem('id', employee.id);
+        localStorage.setItem('name', employee.name);
+        localStorage.setItem('age', employee.age);
     }
 
     function deleteHandler(id) {
-        var index = EmployeesData.map(ele=> ele.id).indexOf(id);
-        if(!window.confirm(`Are you sure to delete #${EmployeesData[index].name}?`)) {
+        var index = EmployeesData.map(ele => ele.id).indexOf(id);
+        if (!window.confirm(`Are you sure to delete #${EmployeesData[index].name}?`)) {
             return false;
         }
-        EmployeesData.splice(index,1);
-        navigate('/');
+        fetch('https://react-crud-dfb7e-default-rtdb.firebaseio.com/employees/' + id + '.json/',
+            {
+                method: 'DELETE'
+            }
+        ).then(() => {
+            rerender(true);
+        });
     }
 
+    if (isLoading) {
+        return (
+            <section>
+                <p>Loading....</p>
+            </section>
+        );
+    }
     return (
         <div className="container">
             <div className="col-md-8 mx-auto">
@@ -38,11 +78,12 @@ const AllEmployees = () => {
                             EmployeesData.map((ele, index) => {
                                 return (
                                     <tr key={ele.id}>
-                                        <th scope="row">{index+1}</th>
+                                        <th scope="row">{index + 1}</th>
                                         <td>{ele.name}</td>
                                         <td>{ele.age}</td>
                                         <td>
-                                            <Link to="/update" className="btn btn-sm btn-info mr-1" onClick={()=>editHandler(ele)}>Edit</Link>
+                                            <Link to="/update" className="btn btn-sm btn-info mr-1"
+                                                  onClick={() => editHandler(ele)}>Edit</Link>
 
                                             <button className="btn btn-sm btn-danger"
                                                     onClick={() => deleteHandler(ele.id)}>Delete

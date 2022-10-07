@@ -1,6 +1,5 @@
 import {useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
-import EmployeesData from "./EmployeesData";
 
 function UpdateEmployee(){
     const navigate = useNavigate();
@@ -9,17 +8,24 @@ function UpdateEmployee(){
     const [age, setAge] =  useState('');
     const [id, setId] =  useState("");
 
-    var index = EmployeesData.map(function (ele){
-        return ele.id;
-    }).indexOf(id);
-
     function editHandler(event){
         event.preventDefault();
 
-        let employee = EmployeesData[index];
-        employee.name = name;
-        employee.age = age;
-        navigate('/');
+        let employee = {
+            name: name,
+            age: age
+        }
+        fetch('https://react-crud-dfb7e-default-rtdb.firebaseio.com/employees/'+id+'.json/',
+            {
+                method: 'PATCH',
+                body: JSON.stringify(employee),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        ).then(()=>{
+            navigate('/');
+        });
     }
 
     useEffect(()=>{
